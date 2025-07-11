@@ -1,0 +1,35 @@
+{
+  "packageName": "ammalgam-contracts",
+  "packageVersion": 1,
+  "hash": "2b211c75e3a5c110e500dbaf7a63a50591392373",
+  "numberOfTours": 6,
+  "titleOfTours": [
+    "1.1: Ammalgam Protocol: A High-Level Overview",
+    "2.1: Plugins: Overview",
+    "2.2: Plugin Registry Interface",
+    "3.1: Tokens: Overview",
+    "3.2: Tokens: ERC20Base Contract",
+    "Want to learn more?"
+  ],
+  "totalNumberOfSteps": 62,
+  "filesCovered": [
+    "contracts/factories/AmmalgamFactory.sol",
+    "contracts/AmmalgamPair.sol",
+    "contracts/tokens/TokenController.sol",
+    "contracts/interfaces/tokens/ITokenController.sol",
+    "contracts/tokens/ERC20Base.sol",
+    "contracts/libraries/GeometricTWAP.sol",
+    "contracts/libraries/Saturation.sol",
+    "contracts/libraries/Liquidation.sol",
+    "contracts/interfaces/tokens/IPluginRegistry.sol",
+    "contracts/tokens/PluginRegistry.sol",
+    "contracts/interfaces/tokens/IAmmalgamERC20.sol",
+    "contracts/interfaces/tokens/IERC20DebtToken.sol",
+    "contracts/tokens/ERC20DebtBase.sol",
+    "contracts/tokens/ERC20LiquidityToken.sol",
+    "contracts/tokens/ERC20DebtLiquidityToken.sol",
+    "contracts/tokens/ERC4626DepositToken.sol",
+    "contracts/tokens/ERC4626DebtToken.sol"
+  ],
+  "numberOfFilesCovered": 17
+}

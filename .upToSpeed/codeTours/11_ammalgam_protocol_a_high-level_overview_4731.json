@@ -1,0 +1,219 @@
+{
+  "title": "1.1: Ammalgam Protocol: A High-Level Overview",
+  "id": "f4HHsTz8EeVuqy/6jVjJ9epx4lqLfwjD2kEehFmfveU=",
+  "originalId": 4731,
+  "position": 1,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "Welcome to the `Ammalgam` protocol! This high-level tour will map its architecture.\n\n`Ammalgam` is a decentralized lending and borrowing protocol with an integrated Automated Market Maker (`AMM`). Users can swap, supply liquidity, lend, and borrow within self-contained markets called pairs.\n\nWe begin at the `factory`: the single entry point for creating new markets.",
+      "title": "",
+      "id": "57893"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "contracts/factories/AmmalgamFactory.sol"
+      ],
+      "description": "The `AmmalgamFactory.sol` contract serves as the factory for all pairs, enforcing uniqueness and deploying pairs with deterministic addresses.",
+      "title": "",
+      "id": "57894"
+    },
+    {
+      "type": "highlight",
+      "description": "The `createPair(tokenA, tokenB)` function (lines 74–111) ensures tokens differ, orders them, checks existence, and uses `create2` via delegatecall to deploy a new `AmmalgamPair`. It then records and emits the new pair.",
+      "file": "contracts/factories/AmmalgamFactory.sol",
+      "highlight": [
+        {
+          "start": 74,
+          "end": 111
+        }
+      ],
+      "title": "",
+      "id": "57895"
+    },
+    {
+      "type": "textOnly",
+      "description": "Next, each pair is a self-contained market. Let's look at the core `Pair` contract.",
+      "title": "",
+      "id": "57896"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "contracts/AmmalgamPair.sol"
+      ],
+      "description": "`AmmalgamPair.sol` is the heart of a market, managing swaps, liquidity provision, lending, borrowing, and liquidations for a specific token pair.",
+      "title": "",
+      "id": "57897"
+    },
+    {
+      "type": "highlight",
+      "description": "It inherits `IAmmalgamPair` (public interface) and `TokenController` (six‐token system) and ties into `SaturationAndGeometricTWAPState` for risk/pricing state.",
+      "file": "contracts/AmmalgamPair.sol",
+      "highlight": [
+        {
+          "start": 31,
+          "end": 31
+        }
+      ],
+      "title": "",
+      "id": "57898"
+    },
+    {
+      "type": "textOnly",
+      "description": "The six-token system tracks each user’s positions precisely. This is defined in `TokenController`.",
+      "title": "",
+      "id": "57899"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "contracts/tokens/TokenController.sol"
+      ],
+      "description": "`TokenController.sol` manages six ERC-20 tokens per pair: deposit, borrow, and liquidity tokens for both assets.",
+      "title": "",
+      "id": "57900"
+    },
+    {
+      "type": "highlight",
+      "description": "The `Id` enum defines token types: `DEPOSIT_L`, `DEPOSIT_X`, `DEPOSIT_Y`, `BORROW_L`, `BORROW_X`, `BORROW_Y`. Each tracks a different role in the pair.",
+      "file": "contracts/interfaces/tokens/ITokenController.sol",
+      "highlight": [
+        {
+          "start": 8,
+          "end": 13
+        }
+      ],
+      "title": "",
+      "id": "57901"
+    },
+    {
+      "type": "highlight",
+      "description": "The internal functions `mintId` and `burnId` (lines 129–146) update the on-chain share and asset totals, then call `ownerMint`/`ownerBurn` on the specialized tokens to reflect user actions.",
+      "file": "contracts/tokens/TokenController.sol",
+      "highlight": [
+        {
+          "start": 129,
+          "end": 146
+        }
+      ],
+      "title": "",
+      "id": "57902"
+    },
+    {
+      "type": "textOnly",
+      "description": "Every token transfer is guarded by a system-wide solvency check via `ERC20Base`’s hook.",
+      "title": "",
+      "id": "57903"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "contracts/tokens/ERC20Base.sol"
+      ],
+      "description": "`ERC20Base.sol` is the base for all six tokens, adding a transfer hook for solvency validation.",
+      "title": "",
+      "id": "57904"
+    },
+    {
+      "type": "highlight",
+      "description": "This `_update` override ensures that every standard token transfer (i.e., not a mint or burn) is checked for solvency. Before the transfer completes, it calls back to the `pair` contract, which validates the state of the accounts involved.",
+      "file": "contracts/tokens/ERC20Base.sol",
+      "highlight": [
+        {
+          "start": 73,
+          "end": 91
+        }
+      ],
+      "title": "",
+      "id": "57905"
+    },
+    {
+      "type": "mcq",
+      "description": "We've seen how the main contracts connect. In your view, what is the primary mechanism that enforces a solvency check on an account whenever its token balance changes due to a transfer?\n\nOptions:\n\n A). The `lock` modifier, which is applied to all state-changing functions in `AmmalgamPair.sol` to prevent unsafe intermediate states.\n\nB). The `_update` hook in `ERC20Base.sol`, which is inherited by all six tokens and calls `pair.validateOnUpdate` on every non-mint/burn transfer.\n\nC). The `mintId` and `burnId` functions in `TokenController.sol`, which perform a solvency check before adjusting the total supply of a token.\n\nD). The `createPair` function in `AmmalgamFactory.sol`, which validates the initial liquidity and token properties for a new market.\n\n\nCorrect: B). The `_update` hook in `ERC20Base.sol`, which is inherited by all six tokens and calls `pair.validateOnUpdate` on every non-mint/burn transfer.\n\nExplanation: Yes, that seems correct. The `_update` hook in the base token contract is a good design, I think. It ensures that every single transfer triggers a solvency validation by the pair contract. This is quite a robust way to prevent an account from becoming insolvent.\n\nThe `lock` modifier is also useful, but it's for preventing re-entrancy, which is a different kind of problem. The factory checks are for when a new pair is made, not for ongoing operations. And while `mintId` and `burnId` are part of the process, the check itself is tied to the token transfer action through the hook.",
+      "title": "",
+      "id": "57914",
+      "text": "We've seen how the main contracts connect. In your view, what is the primary mechanism that enforces a solvency check on an account whenever its token balance changes due to a transfer?",
+      "answers": [
+        "The `lock` modifier, which is applied to all state-changing functions in `AmmalgamPair.sol` to prevent unsafe intermediate states.",
+        "The `_update` hook in `ERC20Base.sol`, which is inherited by all six tokens and calls `pair.validateOnUpdate` on every non-mint/burn transfer.",
+        "The `mintId` and `burnId` functions in `TokenController.sol`, which perform a solvency check before adjusting the total supply of a token.",
+        "The `createPair` function in `AmmalgamFactory.sol`, which validates the initial liquidity and token properties for a new market."
+      ],
+      "correct": 1,
+      "explanation": "Yes, that seems correct. The `_update` hook in the base token contract is a good design, I think. It ensures that every single transfer triggers a solvency validation by the pair contract. This is quite a robust way to prevent an account from becoming insolvent.\n\nThe `lock` modifier is also useful, but it's for preventing re-entrancy, which is a different kind of problem. The factory checks are for when a new pair is made, not for ongoing operations. And while `mintId` and `burnId` are part of the process, the check itself is tied to the token transfer action through the hook."
+    },
+    {
+      "type": "textOnly",
+      "description": "AmmalgamPair uses three key libraries for core logic: `price oracles`, `risk management`, and `liquidation`.",
+      "title": "",
+      "id": "57906"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "contracts/libraries/GeometricTWAP.sol"
+      ],
+      "description": "**TWAP**: `GeometricTWAP.sol` provides a manipulation-resistant Time-Weighted Average Price oracle for secure price feeds.",
+      "title": "",
+      "id": "57907"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "contracts/libraries/Saturation.sol"
+      ],
+      "description": "**Saturation**: `Saturation.sol` implements a novel risk mechanism that discourages excessive borrowing and mitigates cascading liquidations.",
+      "title": "",
+      "id": "57908"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "contracts/libraries/Liquidation.sol"
+      ],
+      "description": "**Liquidation**: `Liquidation.sol` contains logic to liquidate under-collateralized positions via **HARD**, **SOFT**, or **LEVERAGE** modes.",
+      "title": "",
+      "id": "57909"
+    },
+    {
+      "type": "highlight",
+      "description": "It defines three modes: `HARD = 0`, `SOFT = 1`, `LEVERAGE = 2`, each applying different liquidation rules and premiums.",
+      "file": "contracts/libraries/Liquidation.sol",
+      "highlight": [
+        {
+          "start": 30,
+          "end": 33
+        }
+      ],
+      "title": "",
+      "id": "57910"
+    },
+    {
+      "type": "textOnly",
+      "description": "Finally, let’s trace a high-level borrow operation in `AmmalgamPair`.",
+      "title": "",
+      "id": "57911"
+    },
+    {
+      "type": "highlight",
+      "description": "The `borrow(to, amountX, amountY, data)` function (lines 399–427):\n1. The `lock` modifier prevents reentrancy.\n2. `borrowHelper` calls `Validation.verifyMaxBorrowXY` before minting, enforcing borrow limits.\n3. `mintId` issues debt tokens to the borrower.\n4. `transferAssets` sends the borrowed tokens.\n5. A final `validateSolvency` check ensures the account remains solvent.",
+      "file": "contracts/AmmalgamPair.sol",
+      "highlight": [
+        {
+          "start": 399,
+          "end": 427
+        }
+      ],
+      "title": "",
+      "id": "57912"
+    },
+    {
+      "type": "textOnly",
+      "description": "You’ve now seen the high-level architecture:\n- `Factory` deploys `Pair` contracts.\n- `Pairs` inherit `TokenController` to manage six tokens per user.\n- `ERC20Base` validates every transfer.\n- Core libraries (`GeometricTWAP`, `Saturation`, `Liquidation`) power pricing and risk.\n- User actions (e.g., `borrow`) combine these layers under safety checks.\n\nYou’re ready for the detailed `Factory`, `Pair`, `Tokens`, `Liquidation`, and `TWAP/Saturation` deep dives.",
+      "title": "",
+      "id": "57913"
+    }
+  ]
+}

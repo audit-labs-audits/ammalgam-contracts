@@ -1,0 +1,70 @@
+{
+  "title": "2.2: Plugin Registry Interface",
+  "id": "dCX1LvHz8jaxNCKWjcyB0IrVEM7NFmWBPvO83pP5kPo=",
+  "originalId": 4739,
+  "position": 3,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "This lesson focuses on the `IPluginRegistry` interface, which is used for managing plugins within the system. We will now examine its source code to understand its functionality.",
+      "title": "",
+      "id": "56423"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "contracts/interfaces/tokens/IPluginRegistry.sol"
+      ],
+      "description": "Here is the full source code for the `IPluginRegistry` interface. It defines two functions for plugin management.",
+      "title": "",
+      "id": "56424"
+    },
+    {
+      "type": "highlight",
+      "description": "The `updatePlugin` function is designed to be called by the contract owner to either enable or disable a plugin. The function is `external`, which allows it to be called from other contracts and external accounts. The documentation explicitly states that this function is restricted to the owner, ensuring secure control over plugin management.",
+      "file": "contracts/interfaces/tokens/IPluginRegistry.sol",
+      "highlight": [
+        {
+          "start": 5,
+          "end": 12
+        }
+      ],
+      "title": "",
+      "id": "56425"
+    },
+    {
+      "type": "highlight",
+      "description": "The `isPluginAllowed` function provides a public-facing way to check if a plugin is approved. As a `view` function, it does not alter the contract's state and can be called freely without incurring gas costs for the read operation. This allows any external caller or contract to verify a plugin's status before interacting with it.",
+      "file": "contracts/interfaces/tokens/IPluginRegistry.sol",
+      "highlight": [
+        {
+          "start": 14,
+          "end": 22
+        }
+      ],
+      "title": "",
+      "id": "56426"
+    },
+    {
+      "type": "textOnly",
+      "description": "In summary, while the `isPluginAllowed` function offers a transparent way for anyone to check a plugin's status, the `updatePlugin` function ensures that only the contract owner has the authority to modify it. This separation of **read and write permissions** is a common security pattern in smart contracts.",
+      "title": "",
+      "id": "56427"
+    },
+    {
+      "type": "mcq",
+      "description": "Based on the `IPluginRegistry` interface and its documentation, what is the intended access control mechanism for managing plugins?\n\nOptions:\n\n A). The implementing contract must enforce owner-only access for `updatePlugin`, while `isPluginAllowed` is for public, read-only queries.\n\nB). The `external` keyword on `updatePlugin` means any address can add or remove plugins.\n\nC). The interface itself enforces that only the owner can call `updatePlugin`.\n\nD). Both `updatePlugin` and `isPluginAllowed` are restricted to the owner to ensure secure plugin management.\n\n\nCorrect: A). The implementing contract must enforce owner-only access for `updatePlugin`, while `isPluginAllowed` is for public, read-only queries.\n\nExplanation: This is correct. An interface only defines the function signatures, not the implementation logic like access control. The `@notice` documentation for `updatePlugin` explicitly states the intended owner-only restriction, which must be implemented in the concrete contract. The `isPluginAllowed` function is a `view` function, designed for public, gas-free read access by any caller.",
+      "title": "",
+      "id": "56428",
+      "text": "Based on the `IPluginRegistry` interface and its documentation, what is the intended access control mechanism for managing plugins?",
+      "answers": [
+        "The implementing contract must enforce owner-only access for `updatePlugin`, while `isPluginAllowed` is for public, read-only queries.",
+        "The `external` keyword on `updatePlugin` means any address can add or remove plugins.",
+        "The interface itself enforces that only the owner can call `updatePlugin`.",
+        "Both `updatePlugin` and `isPluginAllowed` are restricted to the owner to ensure secure plugin management."
+      ],
+      "correct": 0,
+      "explanation": "This is correct. An interface only defines the function signatures, not the implementation logic like access control. The `@notice` documentation for `updatePlugin` explicitly states the intended owner-only restriction, which must be implemented in the concrete contract. The `isPluginAllowed` function is a `view` function, designed for public, gas-free read access by any caller."
+    }
+  ]
+}
