@@ -1,0 +1,164 @@
+{
+  "title": "3.1: Tokens: Overview",
+  "id": "Z+0mofxoOl/mNdP4qZtiC697bjir3RopAFtc7etvGi0=",
+  "originalId": 4732,
+  "position": 5,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "Welcome to a tour of the different token types in the `Ammalgam protocol`. We'll explore the interfaces, base contracts, and concrete implementations that make up the token system.",
+      "title": "",
+      "id": "56450"
+    },
+    {
+      "type": "highlight",
+      "description": "The `IAmmalgamERC20` interface extends standard **ERC20** with custom mint and burn functions. Notice the `ownerMint`, `ownerBurn`, and `ownerTransfer` functions on lines 73, 82, and 90 - these can only be called by the owner (the pair contract), giving it full control over token operations.",
+      "file": "contracts/interfaces/tokens/IAmmalgamERC20.sol",
+      "highlight": [
+        {
+          "start": 12,
+          "end": 91
+        }
+      ],
+      "title": "",
+      "id": "56451"
+    },
+    {
+      "type": "highlight",
+      "description": "The `IERC20DebtToken` interface extends `IAmmalgamERC20` with debt-specific functionality. Key features include `debtAllowance` for managing debt transfer permissions, `approveDebt` for approving debt transfers, and `claimDebt` for claiming debt from another account. This reverses the normal **ERC20 approval pattern** for debt tokens.",
+      "file": "contracts/interfaces/tokens/IERC20DebtToken.sol",
+      "highlight": [
+        {
+          "start": 11,
+          "end": 37
+        }
+      ],
+      "title": "",
+      "id": "56452"
+    },
+    {
+      "type": "textOnly",
+      "description": "Now let's examine the base contracts that implement these interfaces.",
+      "title": "",
+      "id": "56453"
+    },
+    {
+      "type": "highlight",
+      "description": "`ERC20Base` is the foundation for all Ammalgam tokens. It inherits from `OpenZeppelin`'s `ERC20` with plugins support and includes the immutable `pair` reference on line 31 for validation callbacks. The `tokenType` on line 34 distinguishes between different token categories.",
+      "file": "contracts/tokens/ERC20Base.sol",
+      "highlight": [
+        {
+          "start": 30,
+          "end": 50
+        }
+      ],
+      "title": "",
+      "id": "56454"
+    },
+    {
+      "type": "highlight",
+      "description": "`ERC20DebtBase` extends `ERC20Base` specifically for debt tokens. It overrides the `transfer` and `transferFrom` functions to use debt allowance semantics - notice how `transferFrom` on `line 67` checks allowance from the receiver rather than the sender, which is the opposite of normal ERC20 behavior.",
+      "file": "contracts/tokens/ERC20DebtBase.sol",
+      "highlight": [
+        {
+          "start": 59,
+          "end": 85
+        }
+      ],
+      "title": "",
+      "id": "56455"
+    },
+    {
+      "type": "textOnly",
+      "description": "Let's explore the concrete token implementations, starting with `liquidity tokens`.",
+      "title": "",
+      "id": "56456"
+    },
+    {
+      "type": "highlight",
+      "description": "`ERC20LiquidityToken` represents a user's share in the liquidity pool. The `ownerMint` function emits a `Mint` event and creates new shares, while `ownerBurn` destroys shares from the pair contract on line 30. This is the simplest token type in the protocol.",
+      "file": "contracts/tokens/ERC20LiquidityToken.sol",
+      "highlight": [
+        {
+          "start": 12,
+          "end": 43
+        }
+      ],
+      "title": "",
+      "id": "56457"
+    },
+    {
+      "type": "highlight",
+      "description": "`ERC20DebtLiquidityToken` represents borrowed liquidity. Unlike regular tokens, it emits `BorrowLiquidity` and `RepayLiquidity` events to track debt operations. Notice how `ownerMint` mints to the `sender` (line 27) rather than `to`, reflecting the debt nature of the token.",
+      "file": "contracts/tokens/ERC20DebtLiquidityToken.sol",
+      "highlight": [
+        {
+          "start": 20,
+          "end": 33
+        }
+      ],
+      "title": "",
+      "id": "56458"
+    },
+    {
+      "type": "highlight",
+      "description": "`ERC4626DepositToken` is an `ERC4626`-compliant vault token for single-asset deposits. It combines the standard `ERC4626` interface with `Ammalgam`'s custom token behavior, allowing users to interact with the protocol using familiar vault semantics.",
+      "file": "contracts/tokens/ERC4626DepositToken.sol",
+      "highlight": [
+        {
+          "start": 15,
+          "end": 28
+        }
+      ],
+      "title": "",
+      "id": "56459"
+    },
+    {
+      "type": "highlight",
+      "description": "`ERC4626DebtToken` is an ERC4626-compliant token for single-asset borrowing. It inherits from both `ERC4626` and `ERC20DebtBase` to provide vault functionality for debt tokens. This allows borrowing to use the standard ERC4626 `mint` and `redeem` interface.",
+      "file": "contracts/tokens/ERC4626DebtToken.sol",
+      "highlight": [
+        {
+          "start": 19,
+          "end": 32
+        }
+      ],
+      "title": "",
+      "id": "56460"
+    },
+    {
+      "type": "textOnly",
+      "description": "Finally, let's examine the key security feature that validates all `token transfers`.",
+      "title": "",
+      "id": "56461"
+    },
+    {
+      "type": "highlight",
+      "description": "The `_update` function in `ERC20Base` contains a critical security hook. On line 89, it calls `pair.validateOnUpdate()` for every token transfer, ensuring the `AmmalgamPair` contract can validate account solvency and maintain protocol safety. This prevents users from transferring tokens if it would make their position unhealthy.",
+      "file": "contracts/tokens/ERC20Base.sol",
+      "highlight": [
+        {
+          "start": 73,
+          "end": 91
+        }
+      ],
+      "title": "",
+      "id": "56462"
+    },
+    {
+      "type": "mcq",
+      "description": "Based on the `_update` function in `ERC20Base.sol`, what is the primary purpose of the `pair.validateOnUpdate()` call?\n\nOptions:\n\n A). To update the accrued interest for the `from` and `to` accounts.\n\nB). To allow the `AmmalgamPair` contract to verify the health of an account's position before the transfer is finalized.\n\nC). To enforce transfer fees owed to the pair contract.\n\nD). To notify external plugins about the transfer event for off-chain processing.\n\n\nCorrect: B). To allow the `AmmalgamPair` contract to verify the health of an account's position before the transfer is finalized.\n\nExplanation: The correct answer is that `pair.validateOnUpdate()` serves as a security hook. It allows the `AmmalgamPair` contract, acting as an `ITransferValidator`, to check if a transfer would leave an account in an unhealthy or undercollateralized state. This validation occurs on every transfer between user accounts. Interest accrual and plugin notifications are handled by other mechanisms, and the check is explicitly skipped when `transferPenaltyFromPairToBorrower` is true, indicating it's not for applying fees.",
+      "title": "",
+      "id": "56463",
+      "text": "Based on the `_update` function in `ERC20Base.sol`, what is the primary purpose of the `pair.validateOnUpdate()` call?",
+      "answers": [
+        "To update the accrued interest for the `from` and `to` accounts.",
+        "To allow the `AmmalgamPair` contract to verify the health of an account's position before the transfer is finalized.",
+        "To enforce transfer fees owed to the pair contract.",
+        "To notify external plugins about the transfer event for off-chain processing."
+      ],
+      "correct": 1,
+      "explanation": "The correct answer is that `pair.validateOnUpdate()` serves as a security hook. It allows the `AmmalgamPair` contract, acting as an `ITransferValidator`, to check if a transfer would leave an account in an unhealthy or undercollateralized state. This validation occurs on every transfer between user accounts. Interest accrual and plugin notifications are handled by other mechanisms, and the check is explicitly skipped when `transferPenaltyFromPairToBorrower` is true, indicating it's not for applying fees."
+    }
+  ]
+}

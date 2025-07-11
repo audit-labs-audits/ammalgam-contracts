@@ -1,0 +1,105 @@
+{
+  "title": "2.1: Plugins: Overview",
+  "id": "AJgzkBMzmALGQZeIeh+9TnhGdcy+mufM3LE4KgegEKo=",
+  "originalId": 4735,
+  "position": 2,
+  "steps": [
+    {
+      "type": "textOnly",
+      "description": "The Amalgam protocol uses a plugin registry to control which plugins can be attached to its `ERC20` tokens. This gatekeeper system is defined by an interface and a concrete implementation, enabling central management of plugin permissions.",
+      "title": "",
+      "id": "57884"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "contracts/interfaces/tokens/IPluginRegistry.sol"
+      ],
+      "description": "This **interface** declares the `functions` for updating and querying **plugin permissions**. Implementations must follow this **API** to register and enforce **plugin rules**.",
+      "title": "",
+      "id": "57885"
+    },
+    {
+      "type": "highlight",
+      "description": "This function allows the contract owner to add or remove a plugin from the approved list.",
+      "file": "contracts/interfaces/tokens/IPluginRegistry.sol",
+      "highlight": [
+        {
+          "start": 12,
+          "end": 13
+        }
+      ],
+      "title": "",
+      "id": "57886"
+    },
+    {
+      "type": "highlight",
+      "description": "The `isPluginAllowed(address plugin)` view function returns whether a plugin is currently approved. It’s intended to be callable by external contracts (e.g., `ERC20 tokens`) before accepting a plugin.",
+      "file": "contracts/interfaces/tokens/IPluginRegistry.sol",
+      "highlight": [
+        {
+          "start": 20,
+          "end": 22
+        }
+      ],
+      "title": "",
+      "id": "57887"
+    },
+    {
+      "type": "revealFiles",
+      "files": [
+        "contracts/tokens/PluginRegistry.sol"
+      ],
+      "description": "This contract implements `IPluginRegistry` and uses OpenZeppelin’s `Ownable` to restrict administrative actions. It stores plugin statuses in a mapping.",
+      "title": "",
+      "id": "57888"
+    },
+    {
+      "type": "highlight",
+      "description": "The `allowedPlugins` mapping tracks each plugin’s approval state. The `updatePlugin` function (line 13) is protected by `onlyOwner`, ensuring only the owner can modify the registry.",
+      "file": "contracts/tokens/PluginRegistry.sol",
+      "highlight": [
+        {
+          "start": 9,
+          "end": 15
+        }
+      ],
+      "title": "",
+      "id": "57889"
+    },
+    {
+      "type": "highlight",
+      "description": "The `isPluginAllowed` function is also restricted by `onlyOwner`. This prevents `ERC20` tokens—external callers—from querying the registry and represents an access-control bug that blocks tokens from validating plugin permissions.",
+      "file": "contracts/tokens/PluginRegistry.sol",
+      "highlight": [
+        {
+          "start": 17,
+          "end": 21
+        }
+      ],
+      "title": "",
+      "id": "57890"
+    },
+    {
+      "type": "textOnly",
+      "description": "In a correct gatekeeper, tokens would publicly call `isPluginAllowed` to verify plugins before adding them. The separation of interface and implementation secures who can update permissions and who can query them\u001fem though this implementation needs a fix to remove the owner-only restriction on the query.",
+      "title": "",
+      "id": "57891"
+    },
+    {
+      "type": "mcq",
+      "description": "An external ERC20 token contract attempts to call `isPluginAllowed` on the `PluginRegistry` to verify a plugin. Based on the provided `PluginRegistry.sol` code, what will be the outcome of this call?\n\nOptions:\n\n A). The transaction will revert because the calling contract is not the owner.\n\nB). The function will execute successfully and return `false` since the caller is not the owner.\n\nC). The function will execute successfully and return the plugin's true approval status.\n\nD). The transaction will revert because the function's visibility (`public`) is incompatible with the interface's (`external`).\n\n\nCorrect: A). The transaction will revert because the calling contract is not the owner.\n\nExplanation: The correct answer is that the transaction will revert. The `isPluginAllowed` function in `PluginRegistry.sol` is decorated with the `onlyOwner` modifier. This modifier ensures that only the owner of the contract can call the function. Any attempt by an external contract, such as an ERC20 token, to call this function will fail, causing the transaction to revert. The intended behavior is for this function to be public, but the implementation contains an access control error.",
+      "title": "",
+      "id": "57892",
+      "text": "An external ERC20 token contract attempts to call `isPluginAllowed` on the `PluginRegistry` to verify a plugin. Based on the provided `PluginRegistry.sol` code, what will be the outcome of this call?",
+      "answers": [
+        "The transaction will revert because the calling contract is not the owner.",
+        "The function will execute successfully and return `false` since the caller is not the owner.",
+        "The function will execute successfully and return the plugin's true approval status.",
+        "The transaction will revert because the function's visibility (`public`) is incompatible with the interface's (`external`)."
+      ],
+      "correct": 0,
+      "explanation": "The correct answer is that the transaction will revert. The `isPluginAllowed` function in `PluginRegistry.sol` is decorated with the `onlyOwner` modifier. This modifier ensures that only the owner of the contract can call the function. Any attempt by an external contract, such as an ERC20 token, to call this function will fail, causing the transaction to revert. The intended behavior is for this function to be public, but the implementation contains an access control error."
+    }
+  ]
+}
